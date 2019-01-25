@@ -39,51 +39,40 @@ router.get('/dashboard', (req, res) => {
 router.get('/getUserData', (req, res) => {
   const { token } = req.headers;
   // console.log('token', ': ', token);
-
   const decoded = jwtDecode(token);
   const { email } = decoded;
-  const firstName = decoded.given_name;
-  const lastName = decoded.family_name;
-  console.log('email', ': ', email);
-  console.log('firstName', ': ', firstName);
-  console.log('lastName', ': ', lastName);
 
   //Accessing the data from organisation based on the email.
   const Organisation = require('../models/Organisation');
   const User = require('../models/User');
-
 
   User.findOne({ email })
     .then((doc) => {
       console.log('doc',': ', doc);
       if (doc){
         const user = doc;
-        console.log('user.organisation',': ', user.organisation);
-        Organisation.find({_id: user.organisation})
+        // console.log('user.organisation',': ', user.organisation);
+        Organisation.findOne({_id: user.organisation})
         .then((doc)=>{
+          console.log('doc',': ', doc);
+          
           const organisation = doc;
           const data = {
             user,
             organisation
           };
-    
           return res.send(data);
         })
-  
       }else{
         const data = {
           message:"Sorry this email is not authorised to use the platform. Please contact Infoexchange to register."
         }
-
         return res.send(data);
       }
-
-
     })
     .catch((error)=>{
       return res.send(error)
     })
-
 })
 
 module.exports = router;
