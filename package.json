@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "now && now alias"
   },
   "repository": {
     "type": "git",
@@ -28,5 +29,8 @@
     "nodemon": "^1.18.9",
     "passport": "^0.4.0",
     "passport-google-oauth": "^1.0.0"
+  },
+  "devDependencies": {
+    "now": "^13.1.2"
   }
 }
