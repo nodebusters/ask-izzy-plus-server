@@ -41,37 +41,38 @@ router.get('/getUserData', (req, res) => {
   // console.log('token', ': ', token);
   const decoded = jwtDecode(token);
   const { email } = decoded;
-
   //Accessing the data from organisation based on the email.
   const Organisation = require('../models/Organisation');
   const User = require('../models/User');
-
   User.findOne({ email })
     .then((doc) => {
-      console.log('doc',': ', doc);
-      if (doc){
+      console.log('doc', ': ', doc);
+      if (doc) {
         const user = doc;
         // console.log('user.organisation',': ', user.organisation);
-        Organisation.findOne({_id: user.organisation})
-        .then((doc)=>{
-          console.log('doc',': ', doc);
-          
-          const organisation = doc;
-          const data = {
-            user,
-            organisation
-          };
-          return res.send(data);
-        })
-      }else{
+        Organisation.findOne({ _id: user.organisation })
+          .then((doc) => {
+            console.log('doc', ': ', doc);
+
+            const organisation = doc;
+            const data = {
+              user,
+              organisation
+            };
+            return res.send(data);
+          })
+      } else {
         const data = {
-          message:"Sorry this email is not authorised to use the platform. Please contact Infoexchange to register."
+          message: "Sorry this email is not authorised to use the platform. Please contact Infoexchange to register."
         }
         return res.send(data);
       }
     })
-    .catch((error)=>{
-      return res.send(error)
+    .catch((error) => {
+      const data = {
+        message: "Sorry something went wrong with the server."
+      }
+      return res.send(data);
     })
 })
 
