@@ -76,4 +76,79 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
+//Note the ":" to declare params in the route.
+router.put('/update/organisation/:_id', (req, res) => {
+  const { _id } = req.params;
+  const Organisation = require('../models/Organisation');
+
+  //Note that _id is a mongo ObjectId not a string.
+  const ObjectId = require('mongoose').Types.ObjectId;
+
+  // new:true returns the updated document instead of the previous one.
+  const options = {
+    new: true,
+  }
+
+  //Storing req.body in update const.
+  const update = req.body;
+
+  //findByIdAndUpdate(id,update,options,callback);
+  Organisation.findByIdAndUpdate(new ObjectId(_id), update, options, (err, organisation) => {
+    console.log('organisation', ': ', organisation);
+    res.send(organisation);
+  })
+
+})
+
+//Note the ":" to declare params in the route.
+router.put('/update/site/:org_id/:site_id', (req, res) => {
+  //Getting organisation and site _ids from req.params. 
+  const { org_id, site_id } = req.params;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const Organisation = require('../models/Organisation');
+  //Storing req.body in update const.
+  const update = req.body;
+
+  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
+    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
+
+    // Using the mongoose set() method to replace the values of site with the ones stored in update (req.body).
+    site.set(update);
+
+    // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
+    organisation.save(() => {
+      res.send(organisation);
+    })
+    //Note we use a callback to wait until is saved to send the response. 
+  })
+})
+
+//Note the ":" to declare params in the route.
+router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
+  //Getting organisation and site _ids from req.params. 
+  const { org_id, site_id, service_id } = req.params;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const Organisation = require('../models/Organisation');
+  //Storing req.body in update const.
+  const update = req.body;
+
+  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
+    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
+
+    //Likewise we find service by id. 
+    const service = site.servicesInSite.id(new ObjectId(service_id))
+
+    // Using the mongoose set() method to replace the values of service with the ones stored in update (req.body).
+    service.set(update);
+
+    // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
+    organisation.save(() => {
+      res.send(organisation);
+    })
+    //Note we use a callback to wait until is saved to send the response. 
+  })
+})
+
 module.exports = router;
