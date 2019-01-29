@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const serviceSchema = new Schema({
-    id: Number,
     name: String,
     description: String,
     referralInfo: String,
@@ -47,7 +46,6 @@ const openingHoursSchema = new Schema({
 })
 
 const siteSchema = new Schema({
-    id: Number,
     name: String,
     accessibility: String,
     locationDetails: String,
@@ -55,7 +53,7 @@ const siteSchema = new Schema({
     publicTransportInfo: String,
     isMobile: Boolean,
     emailAddress: String,
-    emailIsConfidential: String,
+    emailIsConfidential: Boolean,
     website: String,
     postalAddress: String,
     postalAddressState: String,
