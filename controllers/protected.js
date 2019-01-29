@@ -46,13 +46,13 @@ router.get('/getUserData', (req, res) => {
   const User = require('../models/User');
   User.findOne({ email })
     .then((doc) => {
-      console.log('doc', ': ', doc);
+      // console.log('doc', ': ', doc);
       if (doc) {
         const user = doc;
         // console.log('user.organisation',': ', user.organisation);
         Organisation.findOne({ _id: user.organisation })
           .then((doc) => {
-            console.log('doc', ': ', doc);
+            // console.log('doc', ': ', doc);
 
             const organisation = doc;
             const data = {
@@ -92,9 +92,12 @@ router.put('/update/organisation/:_id', (req, res) => {
   //Storing req.body in update const.
   const update = req.body;
 
+  //Here we change the value of lastUpdated to the current date/time.
+  update.lastUpdated = new Date();
+
   //findByIdAndUpdate(id,update,options,callback);
   Organisation.findByIdAndUpdate(new ObjectId(_id), update, options, (err, organisation) => {
-    console.log('organisation', ': ', organisation);
+    // console.log('organisation', ': ', organisation);
     res.send(organisation);
   })
 
@@ -109,12 +112,17 @@ router.put('/update/site/:org_id/:site_id', (req, res) => {
   //Storing req.body in update const.
   const update = req.body;
 
+
+
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
 
     // Using the mongoose set() method to replace the values of site with the ones stored in update (req.body).
     site.set(update);
+
+    //Here we change the value of lastUpdated to the current date/time.
+    organisation.lastUpdated = new Date();
 
     // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
     organisation.save(() => {
@@ -143,6 +151,8 @@ router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
     // Using the mongoose set() method to replace the values of service with the ones stored in update (req.body).
     service.set(update);
 
+    //Here we change the value of lastUpdated to the current date/time.
+    organisation.lastUpdated = new Date();
     // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
     organisation.save(() => {
       res.send(organisation);
