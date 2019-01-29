@@ -35,9 +35,8 @@ mongoose.connection.on('connected', () => {
       // To seed up to five organisations, set index to 1-5
       for (let index = 1; index <= 1; index++) {
     
-        const dateValue = new Date('August 19, 1975 23:15:30');
         const booleanValue = false;
-        const stringValue = `Text entry ${index}` // adding the index to the strings.
+        let stringValue = `Text entry ${index}` // adding the index to the strings.
         
         const serviceData ={
           id: index,
@@ -75,6 +74,9 @@ mongoose.connection.on('connected', () => {
           capacityExpireDate: stringValue,
           accreditationName: stringValue,
         }
+
+        stringValue = `Site Text Entry`
+        
         const siteData = {
           id: index,
           name: stringValue,
@@ -84,7 +86,7 @@ mongoose.connection.on('connected', () => {
           publicTransportInfo: stringValue,
           isMobile: booleanValue,
           emailAddress: stringValue,
-          emailIsConfidential: stringValue,
+          emailIsConfidential: booleanValue,
           website: stringValue,
           postalAddress: stringValue,
           postalAddressState: stringValue,
@@ -109,15 +111,13 @@ mongoose.connection.on('connected', () => {
           addressState: stringValue,
           addressPostcode: stringValue,
           addressIsConfidential: booleanValue,
-          servicesInSite: [serviceData],
+          servicesInSite: [serviceData,serviceData,serviceData],
         }
         const organisationData = {
-          id: index, // note we add the index as id
           name: stringValue,
           description: stringValue,
-          creationTime: dateValue,
-          lastModified: dateValue,
-          lastUpdated: dateValue,
+          createdAt: new Date(),
+          lastUpdated: new Date(),
           website: stringValue,
           abn: stringValue,
           providerType: stringValue,
@@ -133,7 +133,7 @@ mongoose.connection.on('connected', () => {
           phoneKind: stringValue,
           phoneIsConfidential: booleanValue,
           ceo: stringValue,
-          sitesInOrganisation: [siteData],
+          sitesInOrganisation: [siteData, siteData],
         }
     
         Organisation.create(organisationData)
@@ -150,10 +150,12 @@ mongoose.connection.on('connected', () => {
 
 
       Organisation.find()
-      .then((doc)=>{
-        const organisationId = doc[0]._id 
+      .then((organisations)=>{
+        const organisationId = organisations[0]._id 
         console.log('organisationId',': ', organisationId);
-        
+        organisations[0].name = "Salvation Army";
+        organisations[0].save();
+
         const dataUser = {
           email: "askizzyplustest1@gmail.com",
           firstName: "John",

@@ -80,11 +80,9 @@ const siteSchema = new Schema({
 
 
 const organisationSchema = new Schema({
-    id: Number,
     name: String,
     description: String,
-    creationTime: Date,
-    lastModified: Date,
+    createdAt: Date,
     lastUpdated: Date,
     website: String,
     abn: String,
