@@ -34,6 +34,17 @@ router.get('/dashboard', (req, res) => {
   }
 })
 
+router.get('/admin/dashboard', (req, res) => {
+  if (req.session.token) {
+    const { user } = req.session.passport
+    console.log('req.session', ': ', req.session);
+    const { givenName } = user.profile.name;
+    res.send(`You are logged in as ${givenName} from Infoxchange`);
+  } else {
+    res.send("Sorry you need to sign in.");
+  }
+})
+
 //CHECKS for google oauth token and send back data to client.
 //localhost:5000/protected/getUserData
 router.get('/getUserData', (req, res) => {
