@@ -87,6 +87,32 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
+router.get('/getAdminUserData', (req, res) => {
+  const { token } = req.headers;
+  // console.log('token', ': ', token);
+  const decoded = jwtDecode(token);
+  const { email } = decoded;
+  const AdminUser = require('../models/AdminUser');
+  AdminUser.findOne({ email })
+    .then((doc) => {
+      if (doc) {
+        const data = doc;
+        return res.send(data)
+      } else {
+        const data = {
+          message: "Sorry you are not authorized to use the admin dashboard"
+        }
+        return res.send(data)
+      }
+    }) 
+    .catch((error) => {
+      const data = {
+        message: "Sorry something went wrong with the server."
+      }
+      return res.send(data);
+    })
+})
+
 //Note the ":" to declare params in the route.
 router.put('/update/organisation/:_id', (req, res) => {
   const { _id } = req.params;

@@ -11,6 +11,7 @@ mongoose.connect(driver);
 // MONGOOSE: Connection event - when successfully connected
 const Organisation = require('./models/Organisation');
 const User = require('./models/User');
+const AdminUser = require('./models/AdminUser');
 
 mongoose.connection.on('connected', () => {
   console.log('connected to mongod');
@@ -25,7 +26,6 @@ mongoose.connection.on('connected', () => {
         })
       })
     })
-
   }
 
   async function seedOrganisations(){
@@ -162,34 +162,50 @@ mongoose.connection.on('connected', () => {
           lastName: "Citizen",
           organisation:organisationId,
         }
-  
+
         User.create(dataUser)
         .then (()=>{
           console.log(`user seeded`);
           resolve('done');
         })
+        resolve ('done');           
+      })  
+    })
+  }
+
+  async function seedAdminUsers(){
+    return new Promise ((resolve,reject)=>{
+        const dataAdminUser = {
+          email: "askizzyplustest2@gmail.com",
+          firstName: "Admin",
+          lastName: "Ask Izzy Plus"
+        }
+
+        AdminUser.create(dataAdminUser)
+        .then (()=>{
+          console.log(`admin user seeded`);
+          resolve('done');
+        })
+
         resolve ('done');      
       
       })
 
       
-    })
-  }
+    }
 
   async function seed(){
     await dropDatabase();
     await seedOrganisations();
     await seedUsers();
-    console.log("Seeding process finalized.");
-    
+    await seedAdminUsers();
+    console.log("Seeding process finalized.");  
   }
 
   seed();
-
-
-});
 
 // MONGOOSE: Connection event - when disconnected
 mongoose.connection.on('error', () => {
     console.log('failed to connect to mongod');
 });
+})
