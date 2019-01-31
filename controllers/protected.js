@@ -105,7 +105,10 @@ router.get('/getAdminUserData', (req, res) => {
   AdminUser.findOne({ email })
     .then((doc) => {
       if (doc) {
-        const data = doc;
+        const adminUser = doc;
+        const data = {
+          adminUser
+        }
         return res.send(data)
       } else {
         const data = {
