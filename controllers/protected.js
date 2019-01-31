@@ -2,6 +2,8 @@
 const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
 
+const Organisation = require('../models/Organisation')
+
 router.get('/test', (req, res) => {
   return res.send("protected route working")
 })
@@ -43,6 +45,13 @@ router.get('/admin/dashboard', (req, res) => {
   } else {
     res.send("Sorry you need to sign in.");
   }
+})
+
+router.get('/organisations', (req, res) => {
+  Organisation.find()
+    .then(docs => {
+      res.send(docs)
+    })
 })
 
 //CHECKS for google oauth token and send back data to client.
@@ -111,6 +120,10 @@ router.get('/getAdminUserData', (req, res) => {
       }
       return res.send(data);
     })
+})
+
+router.post('/create/user', (req, res) => {
+  return res.send("user created")
 })
 
 //Note the ":" to declare params in the route.

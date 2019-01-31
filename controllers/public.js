@@ -14,12 +14,4 @@ router.get('/admin', (req, res) => {
   return res.send("this is the login page for admin")
 })
 
-// PUBLIC ROUTES: To display all organisations
-router.get('/organisations', (req, res) => {
-  Organisation.find()
-    .then(doc => {
-      res.send(doc)
-    })
-})
-
 module.exports = router;
