@@ -3,7 +3,8 @@ const router = require('express').Router();
 
 // MONGOOSE: Connect to MongoDB via Mongoose and reference Organisation collection
 const mongoose = require('mongoose');
-const Organisation = require('../models/Organisation')
+const User = require('../models/User')
+
 
 // PUBLIC ROUTES: Root
 router.get('/', (req,res) => {
@@ -12,6 +13,11 @@ router.get('/', (req,res) => {
 
 router.get('/admin', (req, res) => {
   return res.send("this is the login page for admin")
+})
+
+router.get('/users', (req, res) => {
+  User.find()
+    .then(docs => res.send(docs));
 })
 
 module.exports = router;

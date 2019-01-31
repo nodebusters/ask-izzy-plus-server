@@ -123,7 +123,11 @@ router.get('/getAdminUserData', (req, res) => {
 })
 
 router.post('/create/user', (req, res) => {
-  return res.send("user created")
+  const newUser = req.body;
+  const User = require('../models/User');
+  User.create(newUser, (err, small) => {
+    if (err) return handleError(err);
+  });
 })
 
 //Note the ":" to declare params in the route.
