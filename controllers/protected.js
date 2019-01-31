@@ -4,6 +4,8 @@ const jwtDecode = require('jwt-decode');
 const nodemailer = require('nodemailer');
 require('dotenv').load();
 
+const Organisation = require('../models/Organisation')
+
 router.get('/test', (req, res) => {
   return res.send("protected route working")
 })
@@ -34,6 +36,24 @@ router.get('/dashboard', (req, res) => {
   } else {
     res.send("Sorry you need to sign in.");
   }
+})
+
+router.get('/admin/dashboard', (req, res) => {
+  if (req.session.token) {
+    const { user } = req.session.passport
+    console.log('req.session', ': ', req.session);
+    const { givenName } = user.profile.name;
+    res.send(`You are logged in as ${givenName} from Infoxchange`);
+  } else {
+    res.send("Sorry you need to sign in.");
+  }
+})
+
+router.get('/organisations', (req, res) => {
+  Organisation.find()
+    .then(docs => {
+      res.send(docs)
+    })
 })
 
 //CHECKS for google oauth token and send back data to client.
@@ -76,6 +96,43 @@ router.get('/getUserData', (req, res) => {
       }
       return res.send(data);
     })
+})
+
+router.get('/getAdminUserData', (req, res) => {
+  const { token } = req.headers;
+  // console.log('token', ': ', token);
+  const decoded = jwtDecode(token);
+  const { email } = decoded;
+  const AdminUser = require('../models/AdminUser');
+  AdminUser.findOne({ email })
+    .then((doc) => {
+      if (doc) {
+        const adminUser = doc;
+        const data = {
+          adminUser
+        }
+        return res.send(data)
+      } else {
+        const data = {
+          message: "Sorry you are not authorized to use the admin dashboard"
+        }
+        return res.send(data)
+      }
+    }) 
+    .catch((error) => {
+      const data = {
+        message: "Sorry something went wrong with the server."
+      }
+      return res.send(data);
+    })
+})
+
+router.post('/create/user', (req, res) => {
+  const newUser = req.body;
+  const User = require('../models/User');
+  User.create(newUser, (err, small) => {
+    if (err) return handleError(err);
+  });
 })
 
 //Note the ":" to declare params in the route.
