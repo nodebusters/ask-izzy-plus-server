@@ -1,6 +1,8 @@
 // EXPRESS ROUTER: Protected pages redirected from auth.js middleware
 const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
+const nodemailer = require('nodemailer');
+require('dotenv').load();
 
 router.get('/test', (req, res) => {
   return res.send("protected route working")
@@ -159,6 +161,34 @@ router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
     })
     //Note we use a callback to wait until is saved to send the response. 
   })
+})
+
+
+router.put('/sendEmail', (req, res) => {
+  console.log('req.body',': ', req.body);
+  // console.log('process.env.DEFAULT_MAILER',': ', process.env.DEFAULT_MAILER);
+  // console.log('process.env.DEFAULT_MAILER_PASSWORD',': ', process.env.DEFAULT_MAILER_PASSWORD);
+  
+  const {email, message} = req.body;
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.DEFAULT_MAILER,
+      pass: process.env.DEFAULT_MAILER_PASSWORD
+    }
+  })
+
+  const emailBody = {
+    from: process.env.DEFAULT_MAILER,
+    to: email,
+    subject: 'Update Notification',
+    html: message
+  }
+
+  transporter.sendMail(emailBody)
+  res.send(req.body)
+
 })
 
 module.exports = router;
