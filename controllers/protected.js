@@ -221,7 +221,7 @@ router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
 })
 
 
-router.put('/sendEmail', (req, res) => {
+router.post('/sendEmail', (req, res) => {
   console.log('req.body',': ', req.body);
   // console.log('process.env.DEFAULT_MAILER',': ', process.env.DEFAULT_MAILER);
   // console.log('process.env.DEFAULT_MAILER_PASSWORD',': ', process.env.DEFAULT_MAILER_PASSWORD);
@@ -249,7 +249,7 @@ router.put('/sendEmail', (req, res) => {
 })
 
 
-router.put('/create/site/:org_id', (req, res) => {
+router.post('/create/site/:org_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id } = req.params;
   const ObjectId = require('mongoose').Types.ObjectId;
