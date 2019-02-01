@@ -248,4 +248,24 @@ router.put('/sendEmail', (req, res) => {
 
 })
 
+
+router.put('/create/site/:org_id', (req, res) => {
+  //Getting organisation and site _ids from req.params. 
+  const { org_id } = req.params;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const Organisation = require('../models/Organisation');
+  //Storing req.body in update const.
+  const update = req.body;
+
+  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
+    const site = update;
+    organisation.sitesInOrganisation.push(site);
+    organisation.save();
+    
+    res.send(organisation);
+ 
+  })
+})
+
 module.exports = router;
