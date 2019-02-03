@@ -305,4 +305,21 @@ router.delete('/delete/site/:org_id/:site_id', (req,res)=>{
   })
 })
 
+router.delete('/delete/site/:org_id/:site_id/:service_id', (req,res)=>{
+  const { org_id, site_id, service_id } = req.params;
+  const ObjectId = require('mongoose').Types.ObjectId;
+  const Organisation = require('../models/Organisation');
+  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+    if (err){
+      return res.send(err)
+    }
+    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
+    // console.log('site',': ', site);
+    const service = site.servicesInSite.id(new ObjectId(service_id));
+    service.remove();
+    organisation.save();
+    return res.send(organisation);
+  })
+})
+
 module.exports = router;
