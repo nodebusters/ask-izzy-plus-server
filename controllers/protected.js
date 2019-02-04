@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').load();
 const Organisation = require('../models/Organisation')
 const User = require('../models/User')
+const ObjectId = require('mongoose').Types.ObjectId;
 
 router.get('/test', (req, res) => {
   return res.send("protected route working")
@@ -66,8 +67,6 @@ router.get('/getUserData', (req, res) => {
   const decoded = jwtDecode(token);
   const { email } = decoded;
   //Accessing the data from organisation based on the email.
-  const Organisation = require('../models/Organisation');
-  const User = require('../models/User');
   User.findOne({ email })
     .then((doc) => {
       if (doc) {
@@ -100,9 +99,6 @@ router.get('/getUserData', (req, res) => {
 //Update
 router.put('/organisation/:_id', (req, res) => {
   const { _id } = req.params;
-  const Organisation = require('../models/Organisation');
-  //Note that _id is a mongo ObjectId not a string.
-  const ObjectId = require('mongoose').Types.ObjectId;
   // new:true returns the updated document instead of the previous one.
   const options = {
     new: true,
@@ -111,7 +107,7 @@ router.put('/organisation/:_id', (req, res) => {
   const update = req.body;
   //Here we change the value of lastUpdated to the current date/time.
   update.lastUpdated = new Date();
-  //findByIdAndUpdate(id,update,options,callback);
+  //Note that _id is a mongo ObjectId not a string.
   Organisation.findByIdAndUpdate(new ObjectId(_id), update, options, (err, organisation) => {
     // console.log('organisation', ': ', organisation);
     res.send(organisation);
@@ -124,19 +120,14 @@ router.put('/organisation/:_id', (req, res) => {
 router.post('/site/:org_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
   //Storing req.body in update const.
   const update = req.body;
-
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
     const site = update;
     organisation.sitesInOrganisation.push(site);
     organisation.save();
-    
-    res.send(organisation);
- 
+    res.send(organisation); 
   })
 })
 
@@ -144,13 +135,11 @@ router.post('/site/:org_id', (req, res) => {
 router.put('/site/:org_id/:site_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
   //Storing req.body in update const.
   const update = req.body;
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
-    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
+    const site = organisation.sitesInOrganisation.id(site_id);
     // Using the mongoose set() method to replace the values of site with the ones stored in update (req.body).
     site.set(update);
     //Here we change the value of lastUpdated to the current date/time.
@@ -166,14 +155,11 @@ router.put('/site/:org_id/:site_id', (req, res) => {
 //Delete Site
 router.delete('/site/:org_id/:site_id', (req,res)=>{
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  Organisation.find({ _id: org_id })
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     if (err){
       return res.send(err)
     }
-    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
+    const site = organisation.sitesInOrganisation.id(site_id);
     // console.log('site',': ', site);
     site.remove();
     organisation.save();
@@ -186,21 +172,17 @@ router.delete('/site/:org_id/:site_id', (req,res)=>{
 router.post('/service/:org_id/:site_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
   //Storing req.body in update const.
   const update = req.body;
 
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
-    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
+    const site = organisation.sitesInOrganisation.id(site_id);
     const services= site.servicesInSite;
     const service = update;
     services.push(service);
     organisation.save();
-    
     res.send(organisation);
- 
   })
 })
 
@@ -208,21 +190,15 @@ router.post('/service/:org_id/:site_id', (req, res) => {
 router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id, site_id, service_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
   //Storing req.body in update const.
   const update = req.body;
-
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
-    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
-
+    const site = organisation.sitesInOrganisation.id(site_id);
     //Likewise we find service by id. 
-    const service = site.servicesInSite.id(new ObjectId(service_id))
-
+    const service = site.servicesInSite.id(service_id);
     // Using the mongoose set() method to replace the values of service with the ones stored in update (req.body).
     service.set(update);
-
     //Here we change the value of lastUpdated to the current date/time.
     organisation.lastUpdated = new Date();
     // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
@@ -236,21 +212,18 @@ router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
 // Delete
 router.delete('/service/:org_id/:site_id/:service_id', (req,res)=>{
   const { org_id, site_id, service_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+  Organisation.findById(org_id, (err, organisation) => {
     if (err){
       return res.send(err)
     }
-    const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
+    const site = organisation.sitesInOrganisation.id(site_id);
     // console.log('site',': ', site);
-    const service = site.servicesInSite.id(new ObjectId(service_id));
+    const service = site.servicesInSite.id(service_id);
     service.remove();
     organisation.save();
     return res.send(organisation);
   })
 })
-
 
 //ADMIN END POINTS:
 //Checks if the admin user exists in the authorised admin users database, if so it responds with the admin user data.
