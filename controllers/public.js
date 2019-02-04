@@ -15,9 +15,4 @@ router.get('/admin', (req, res) => {
   return res.send("this is the login page for admin")
 })
 
-router.get('/users', (req, res) => {
-  User.find()
-    .then(docs => res.send(docs));
-})
-
 module.exports = router;
