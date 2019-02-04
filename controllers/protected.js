@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 require('dotenv').load();
 
 const Organisation = require('../models/Organisation')
+const User = require('../models/User')
 
 router.get('/test', (req, res) => {
   return res.send("protected route working")
@@ -56,6 +57,12 @@ router.get('/organisations', (req, res) => {
     })
 })
 
+router.get('/users', (req, res) => {
+  User.find()
+    .then(docs => {
+      res.send(docs)
+    })
+})
 //CHECKS for google oauth token and send back data to client.
 //localhost:5000/protected/getUserData
 router.get('/getUserData', (req, res) => {
