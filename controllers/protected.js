@@ -3,7 +3,6 @@ const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
 const nodemailer = require('nodemailer');
 require('dotenv').load();
-
 const Organisation = require('../models/Organisation')
 const User = require('../models/User')
 
@@ -136,10 +135,27 @@ router.get('/getAdminUserData', (req, res) => {
 
 router.post('/create/user', (req, res) => {
   const newUser = req.body;
-  const User = require('../models/User');
-  User.create(newUser, (err, small) => {
-    if (err) return handleError(err);
-  });
+  // const { email, organisation } = req.body
+  User.create(newUser)
+    .then((doc) => {
+      return User.find({})
+    })
+    .then((users) => {
+      res.send(users)
+    })
+  // User.find()
+  //   .then(docs => {
+  //     const allUserArray = docs
+  //     return allUserArray
+  //   })
+  // allUserArray.push(newUser);
+  // allUserArray.save();
+  // res.send(allUserArray);
+ 
+  // User.find()
+  //   .then(docs => allUserArray.push(docs))
+  //   .then(allUserArray.push(newUser));
+  // res.send(allUserArray);
 })
 
 //Note the ":" to declare params in the route.
@@ -227,7 +243,6 @@ router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
   })
 })
 
-
 router.post('/sendEmail', (req, res) => {
   console.log('req.body',': ', req.body);
   // console.log('process.env.DEFAULT_MAILER',': ', process.env.DEFAULT_MAILER);
@@ -254,7 +269,6 @@ router.post('/sendEmail', (req, res) => {
   res.send(req.body)
 
 })
-
 
 router.post('/create/site/:org_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
@@ -328,5 +342,18 @@ router.delete('/delete/site/:org_id/:site_id/:service_id', (req,res)=>{
     return res.send(organisation);
   })
 })
+
+// router.delete('/delete/user/:user_id', (req, res) => {
+//   const { user_id }= req.params;
+//   const ObjectId = require('mongoose').Types.ObjectId;
+//   const User = require('../models/User');
+//   User.findById(new ObjectId(user_id), (err, user) => {
+//     if (err){
+//       return res.send(err)
+//     }
+//     user.remove();
+//     return res.send(user);
+//   })
+// })
 
 module.exports = router;
