@@ -4,8 +4,6 @@ const { Schema } = mongoose;
 
 const userSchema = new Schema({
     email: String,
-    firstName: String,
-    lastName: String,
     organisation:{type: mongoose.Schema.Types.ObjectId, ref: 'Organisation'}
 });
 

@@ -3,8 +3,8 @@ const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
 const nodemailer = require('nodemailer');
 require('dotenv').load();
-
 const Organisation = require('../models/Organisation')
+const User = require('../models/User')
 
 router.get('/test', (req, res) => {
   return res.send("protected route working")
@@ -56,6 +56,12 @@ router.get('/organisations', (req, res) => {
     })
 })
 
+router.get('/users', (req, res) => {
+  User.find()
+    .then(docs => {
+      res.send(docs)
+    })
+})
 //CHECKS for google oauth token and send back data to client.
 //localhost:5000/protected/getUserData
 router.get('/getUserData', (req, res) => {
@@ -129,10 +135,11 @@ router.get('/getAdminUserData', (req, res) => {
 
 router.post('/create/user', (req, res) => {
   const newUser = req.body;
-  const User = require('../models/User');
-  User.create(newUser, (err, small) => {
-    if (err) return handleError(err);
-  });
+  User.create(newUser)
+  .then(doc => {
+    User.find()
+    .then(users => res.send(users))
+  })
 })
 
 //Note the ":" to declare params in the route.
@@ -220,7 +227,6 @@ router.put('/update/service/:org_id/:site_id/:service_id', (req, res) => {
   })
 })
 
-
 router.post('/sendEmail', (req, res) => {
   console.log('req.body',': ', req.body);
   // console.log('process.env.DEFAULT_MAILER',': ', process.env.DEFAULT_MAILER);
@@ -247,7 +253,6 @@ router.post('/sendEmail', (req, res) => {
   res.send(req.body)
 
 })
-
 
 router.post('/create/site/:org_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
@@ -293,6 +298,7 @@ router.delete('/delete/site/:org_id/:site_id', (req,res)=>{
   const { org_id, site_id } = req.params;
   const ObjectId = require('mongoose').Types.ObjectId;
   const Organisation = require('../models/Organisation');
+  Organisation.find({ _id: org_id })
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     if (err){
       return res.send(err)
@@ -320,6 +326,16 @@ router.delete('/delete/site/:org_id/:site_id/:service_id', (req,res)=>{
     organisation.save();
     return res.send(organisation);
   })
+})
+
+router.delete('/delete/user/:user_id', (req, res) => {
+  const { user_id }= req.params;
+  const User = require('../models/User');
+  User.findOneAndRemove({ _id: user_id })
+    .then(doc => {
+      User.find()
+        .then(users => res.send(users))
+    })
 })
 
 module.exports = router;
