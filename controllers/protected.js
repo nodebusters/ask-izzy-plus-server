@@ -135,27 +135,11 @@ router.get('/getAdminUserData', (req, res) => {
 
 router.post('/create/user', (req, res) => {
   const newUser = req.body;
-  // const { email, organisation } = req.body
   User.create(newUser)
-    .then((doc) => {
-      return User.find({})
-    })
-    .then((users) => {
-      res.send(users)
-    })
-  // User.find()
-  //   .then(docs => {
-  //     const allUserArray = docs
-  //     return allUserArray
-  //   })
-  // allUserArray.push(newUser);
-  // allUserArray.save();
-  // res.send(allUserArray);
- 
-  // User.find()
-  //   .then(docs => allUserArray.push(docs))
-  //   .then(allUserArray.push(newUser));
-  // res.send(allUserArray);
+  .then(doc => {
+    User.find()
+    .then(users => res.send(users))
+  })
 })
 
 //Note the ":" to declare params in the route.
@@ -314,6 +298,7 @@ router.delete('/delete/site/:org_id/:site_id', (req,res)=>{
   const { org_id, site_id } = req.params;
   const ObjectId = require('mongoose').Types.ObjectId;
   const Organisation = require('../models/Organisation');
+  Organisation.find({ _id: org_id })
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     if (err){
       return res.send(err)
@@ -343,17 +328,14 @@ router.delete('/delete/site/:org_id/:site_id/:service_id', (req,res)=>{
   })
 })
 
-// router.delete('/delete/user/:user_id', (req, res) => {
-//   const { user_id }= req.params;
-//   const ObjectId = require('mongoose').Types.ObjectId;
-//   const User = require('../models/User');
-//   User.findById(new ObjectId(user_id), (err, user) => {
-//     if (err){
-//       return res.send(err)
-//     }
-//     user.remove();
-//     return res.send(user);
-//   })
-// })
+router.delete('/delete/user/:user_id', (req, res) => {
+  const { user_id }= req.params;
+  const User = require('../models/User');
+  User.findOneAndRemove({ _id: user_id })
+    .then(doc => {
+      User.find()
+        .then(users => res.send(users))
+    })
+})
 
 module.exports = router;
