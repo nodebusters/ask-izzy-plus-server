@@ -1,4 +1,4 @@
-// PASSPORT: Delegated Gmail authentication using OAuth
+// PASSPORT: Google OAuth Strategy.
 const passport = require('passport');
 
 // EXPRESS ROUTER: http://localhost:5000/auth/
@@ -8,8 +8,7 @@ router.get('/test', (req, res) => {
   return res.send("auth route working")
 })
 
-// FIXME: Where is this logic coming from?
-// PASSPORT/COOKIE-PARSER: Checks/shows different messages if a token exists or not
+// PASSPORT/COOKIE-PARSER: Checks if token exists and displays corresopnding messages. 
 router.get('/token', (req, res) => {
   console.log('req.session.token',': ', req.session.token);
   if (req.session.token) {
@@ -41,8 +40,7 @@ router.get('/logout', (req, res) => {
 });
 
 // PASSPORT: To login using Google oAuth 2.0 strategy from Passport
-// Uses passport.authenticate() router middleware, specifying the 'google' strategy, requires an extra scope parameter
-// Redirects user to google.com - after authorization, will redirect back to this application at /auth/google/callback
+// Uses passport.authenticate() router middleware, specifying the 'google' strategy, note that requires a scope parameter
 router.get('/login', passport.authenticate('google', {
   scope: ['https://www.googleapis.com/auth/userinfo.profile']
 }));
