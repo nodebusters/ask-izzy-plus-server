@@ -1,14 +1,10 @@
-// EXPRESS ROUTER: Protected pages redirected from auth.js middleware
 const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
 const nodemailer = require('nodemailer');
-require('dotenv').load();
 const Organisation = require('../models/Organisation')
 const User = require('../models/User')
-
-router.get('/test', (req, res) => {
-  return res.send("protected route working")
-})
+const ObjectId = require('mongoose').Types.ObjectId;
+require('dotenv').load();
 
 // MIDDLEWARE: isAuthenticated function checks if Google OAuth token exists, if so calls next otherwise it sends an error message.
 const isAuthenticated = (req, res, next) => {
@@ -20,16 +16,25 @@ const isAuthenticated = (req, res, next) => {
   }
 }
 
+// Email Variables
+const mailerEmail = 'askizzyplus.mailer@gmail.com'
+const receiverEmail = 'askizzyplus.user1@gmail.com'
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+      user: process.env.GMAIL_ACCOUNT,
+      pass: process.env.GMAIL_PASS
+  }
+})
+
 //PASSPORT: Using isAuthenticated in all the end points of our router. To access any end point the token has to exists. 
 router.use(isAuthenticated);
 
-//Profile info from User.
 router.get('/profile', (req, res) => {
   const { user } = req.session.passport;
   res.send(user.profile);
 });
 
-//Organisations data endpoint.
 router.get('/organisations', (req, res) => {
   Organisation.find()
     .then(docs => {
@@ -37,7 +42,6 @@ router.get('/organisations', (req, res) => {
     })
 })
 
-//Users data endpoint.
 router.get('/users', (req, res) => {
   User.find()
     .then(docs => {
@@ -45,21 +49,18 @@ router.get('/users', (req, res) => {
     })
 })
 
-//Dashboard for AskIzzy Plus User.
 router.get('/dashboard', (req, res) => {
     const { user } = req.session.passport
     const { givenName } = user.profile.name;
     res.send(`Welcome ${givenName}`);
 })
 
-//Dashboard for AskIzzy Plus Admin.
 router.get('/admin/dashboard', (req, res) => {
     const { user } = req.session.passport
     const { givenName } = user.profile.name;
     res.send(`You are logged in as ${givenName} from Infoxchange`);
 })
 
-//ASKIZZY PLUS USER END POINTS:
 //Checks if the user exists in the authorised users database, if so it responds with the user organisation data.
 router.get('/getUserData', (req, res) => {  
   const { token } = req.headers;
@@ -96,161 +97,222 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
-//ORGANISATION
-//Update
+//Update ORGANISATION - EMAIL DONE!
 router.put('/organisation/:_id', (req, res) => {
   const { _id } = req.params;
-  const Organisation = require('../models/Organisation');
-  //Note that _id is a mongo ObjectId not a string.
-  const ObjectId = require('mongoose').Types.ObjectId;
-  // new:true returns the updated document instead of the previous one.
   const options = {
     new: true,
   }
-  //Storing req.body in update const.
-  const update = req.body;
-  //Here we change the value of lastUpdated to the current date/time.
-  update.lastUpdated = new Date();
-  //findByIdAndUpdate(id,update,options,callback);
-  Organisation.findByIdAndUpdate(new ObjectId(_id), update, options, (err, organisation) => {
-    // console.log('organisation', ': ', organisation);
+  req.body.lastUpdated = new Date();
+  Organisation.findByIdAndUpdate(new ObjectId(_id), req.body, options, (err, organisation) => {
     res.send(organisation);
+// Email Code
+  const { description, website, abn, providerType, alsoKnownAs, emailAddress, emailIsConfidential, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, ceo } = req.body
+
+  const emailBody = {
+    from: mailerEmail,
+    to: receiverEmail,
+    subject: 'Organisation Details Updated',
+    html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated their information<br>The new information submitted is as follows....<br><br>Description: ${description}<br>Website: ${website}<br>ABN: ${abn}<br>Provider Type: ${providerType}<br>Also Known As: ${alsoKnownAs}<br>Email Address: ${emailAddress}<br>Email Confidential?: ${emailIsConfidential}<br>Postal Address: ${postalAddress}<br>State: ${postalAddressState}<br>Suburb: ${postalAddressSuburb}<br>PostCode: ${postalAddressPostcode}<br>Postal Address is Confidential? ${postalAddressIsConfidential}<br>Phone Number: ${phoneNumber}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>CEO: ${ceo}</p>`
+    }
+    transporter.sendMail(emailBody, function(error, info) {
+      if(error){
+        console.log(error)
+        res.send('Email not sent :(')
+     } else {
+        console.log(info.response)
+        res.send('Email Sent :-)')
+    }
+    })
   })
 })
 
-
-// SITE
-//Create Site
+//Create Site - EMAIL DONE!
 router.post('/site/:org_id', (req, res) => {
-  //Getting organisation and site _ids from req.params. 
   const { org_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  //Storing req.body in update const.
-  const update = req.body;
-
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
-    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
-    const site = update;
+    const site = req.body;
     organisation.sitesInOrganisation.push(site);
     organisation.save();
-    
     res.send(organisation);
- 
+// Email Code
+    const { name, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
+
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: 'New Site Created',
+      html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has created a new site.<br><br>Site Name: ${name}<br>Accessibility: 
+      ${accessibility}<br>Location Details: ${locationDetails}<br>Parking Info: ${parkingInfo}<br>Public Transport Info: ${publicTransportInfo}<br>Is Mobile: ${isMobile}<br>Email Address: ${emailAddress}<br>Email Is Confidential?: ${emailIsConfidential}<br>Website: ${website}<br>Postal Address: ${postalAddress}<br>Postal Address State: ${postalAddressState}<br>Postal Address Suburb: ${postalAddressSuburb}<br>Postal Address Postcode: ${postalAddressPostcode}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>Opening Hours${openingHours}<br>Address Building: ${addressBuilding}<br>Address Level: ${addressLevel}<br>Address Flat Unit: ${addressFlatUnit}<br>Address Street Number: ${addressStreetNumber}<br>Address Street Name: ${addressStreetName}<br>Address Street Type: ${addressStreetType}<br>Address Street Suffix: ${addressStreetSuffix}<br>Address Suburb: ${addressSuburb}<br>Address State: ${addressState}<br>Address Postcode: ${addressPostcode}<br>Address Is Confidential: ${addressIsConfidential}</p>`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+       } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
   })
 })
 
-// Update Site:
-router.put('/site/:org_id/:site_id', (req, res) => {
-  //Getting organisation and site _ids from req.params. 
+// Update Site - EMAIL DONE!
+router.put('/site/:org_id/:site_id', (req, res) => { 
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  //Storing req.body in update const.
-  const update = req.body;
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
-    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
-    // Using the mongoose set() method to replace the values of site with the ones stored in update (req.body).
-    site.set(update);
-    //Here we change the value of lastUpdated to the current date/time.
+    site.set(req.body);
     organisation.lastUpdated = new Date();
-    // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
     organisation.save(() => {
       res.send(organisation);
     })
-    //Note we use a callback to wait until is saved to send the response. 
+// Email Code
+  const { siteName, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
+
+const emailBody = {
+  from: mailerEmail,
+  to: receiverEmail,
+  subject: 'Site Updated',
+  html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has updated information for the '${site.name}' site.<br><br>Site Name: ${siteName}<br>Accessibility: 
+  ${accessibility}<br>Location Details: ${locationDetails}<br>Parking Info: ${parkingInfo}<br>Public Transport Info: ${publicTransportInfo}<br>Is Mobile: ${isMobile}<br>Email Address: ${emailAddress}<br>Email Is Confidential?: ${emailIsConfidential}<br>Website: ${website}<br>Postal Address: ${postalAddress}<br>Postal Address State: ${postalAddressState}<br>Postal Address Suburb: ${postalAddressSuburb}<br>Postal Address Postcode: ${postalAddressPostcode}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>Opening Hours${openingHours}<br>Address Building: ${addressBuilding}<br>Address Level: ${addressLevel}<br>Address Flat Unit: ${addressFlatUnit}<br>Address Street Number: ${addressStreetNumber}<br>Address Street Name: ${addressStreetName}<br>Address Street Type: ${addressStreetType}<br>Address Street Suffix: ${addressStreetSuffix}<br>Address Suburb: ${addressSuburb}<br>Address State: ${addressState}<br>Address Postcode: ${addressPostcode}<br>Address Is Confidential: ${addressIsConfidential}</p>`
+  }
+  transporter.sendMail(emailBody, function(error, info) {
+    if(error){
+      console.log(error)
+      res.send('Email not sent :(')
+   } else {
+      console.log(info.response)
+      res.send('Email Sent :-)')
+  }
+  })
   })
 })
 
-//Delete Site
-router.delete('/site/:org_id/:site_id', (req,res)=>{
+//Delete Site EMAIL DONE!
+router.delete('/site/:org_id/:site_id', (req, res) => {
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  Organisation.find({ _id: org_id })
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     if (err){
       return res.send(err)
     }
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
-    // console.log('site',': ', site);
     site.remove();
     organisation.save();
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: `Site Deleted by ${organisation.name}`,
+      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has deleted the '${site.name}' site</p>`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+       } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
     return res.send(organisation);
   })
 })
 
-//SERVICE
-//Create 
+//Create Service EMAIL DONE!
 router.post('/service/:org_id/:site_id', (req, res) => {
-  //Getting organisation and site _ids from req.params. 
   const { org_id, site_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  //Storing req.body in update const.
-  const update = req.body;
+  const {  name, description, referralInfo, adhcEligible, assessmentCriteria, targetGender, availability, billingMethod, cost, crisisKeywords, details, eligibilityInfo, ineligibilityInfo, fundingBody, healthcareCardHolders, intakeInfo, intakePoint, isBulkBilling, ndisApproved, promotedService, specialRequirements, language, ageGroupKeyword, ageGroupDescription, serviceTypes, indigenousClassification, capacityStatus, capacityStatusText, capacityFrequency, capacityLastNotification, capacityLastStatusUpdate, capacityExpireDate, accreditationName } = req.body
 
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
-    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
+// Finding the records and updating them    
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
     const services= site.servicesInSite;
-    const service = update;
+    const service = req.body;
     services.push(service);
     organisation.save();
-    
     res.send(organisation);
- 
+// Sending the email advising what has been created.
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: 'New Service Created',
+      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has created a new service for the '${site.name}' site.<br><br>Name: ${name}<br>Description: ${description}<br>Referral Info: ${referralInfo}<br>ADHC Eligible: ${adhcEligible}<br>Assessment Criteria: ${assessmentCriteria}<br>Target Gender: ${targetGender}<br>Availability: ${availability}<br>Billing Method: ${billingMethod}<br>Cost: ${cost}<br>Crisis Keywords: ${crisisKeywords}<br>Details: ${details}<br>Eligibility Info: ${eligibilityInfo}<br>Ineligibility Info: ${ineligibilityInfo}<br>Funding Body: ${fundingBody}<br>Healthcare Card Holders: ${healthcareCardHolders}<br>Intake Info: ${intakeInfo}<br>Bulk Billing?: ${isBulkBilling}<br>NDIS Approved: ${ndisApproved}<br>Promoted Service: ${promotedService}<br>Special Requirements: ${specialRequirements}<br>Language: ${language}<br>Age Group Keyword: ${ageGroupKeyword}<br>Age Group Description: ${ageGroupDescription}<br>Service Types: ${serviceTypes}<br>Indigenous Classification: ${indigenousClassification}<br>Capacity Status: ${capacityStatus}<br>Capacity Status Text: ${capacityStatusText}<br>Capacity Frequency: ${capacityFrequency}<br>Capacity Last Notification: ${capacityLastNotification}<br>Capacity Last Status Update: ${capacityLastStatusUpdate}<br>Capacity Expire Date: ${capacityExpireDate}<br>Accreditation Name: ${accreditationName}</p>`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+       } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
   })
 })
 
-// Update 
-router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
-  //Getting organisation and site _ids from req.params. 
+// Update Service EMAIL DONE!
+router.put('/service/:org_id/:site_id/:service_id', (req, res) => { 
   const { org_id, site_id, service_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
-  //Storing req.body in update const.
-  const update = req.body;
+  const {  name, description, referralInfo, adhcEligible, assessmentCriteria, targetGender, availability, billingMethod, cost, crisisKeywords, details, eligibilityInfo, ineligibilityInfo, fundingBody, healthcareCardHolders, intakeInfo, intakePoint, isBulkBilling, ndisApproved, promotedService, specialRequirements, language, ageGroupKeyword, ageGroupDescription, serviceTypes, indigenousClassification, capacityStatus, capacityStatusText, capacityFrequency, capacityLastNotification, capacityLastStatusUpdate, capacityExpireDate, accreditationName } = req.body
 
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
-    //We are finding site with the help of mongoose method id(). This is handy when we have an array of objects in mongoose.  This methods takes a Mongoose ObjectId and returns the document.
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
-
-    //Likewise we find service by id. 
     const service = site.servicesInSite.id(new ObjectId(service_id))
-
-    // Using the mongoose set() method to replace the values of service with the ones stored in update (req.body).
-    service.set(update);
-
+    service.set(req.body);
     //Here we change the value of lastUpdated to the current date/time.
     organisation.lastUpdated = new Date();
-    // In Mongo we need to save the main document, if not the changes to the subdocument won't take place.
     organisation.save(() => {
       res.send(organisation);
     })
-    //Note we use a callback to wait until is saved to send the response. 
+    // Sending the email advising what has been updated.
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: 'Service Info Updated',
+      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has updated details of a service at ${site.name}<br><br>Name: ${name}<br>Description: ${description}<br>Referral Info: ${referralInfo}<br>ADHC Eligible: ${adhcEligible}<br>Assessment Criteria: ${assessmentCriteria}<br>Target Gender: ${targetGender}<br>Availability: ${availability}<br>Billing Method: ${billingMethod}<br>Cost: ${cost}<br>Crisis Keywords: ${crisisKeywords}<br>Details: ${details}<br>Eligibility Info: ${eligibilityInfo}<br>Ineligibility Info: ${ineligibilityInfo}<br>Funding Body: ${fundingBody}<br>Healthcare Card Holders: ${healthcareCardHolders}<br>Intake Info: ${intakeInfo}<br>Bulk Billing?: ${isBulkBilling}<br>NDIS Approved: ${ndisApproved}<br>Promoted Service: ${promotedService}<br>Special Requirements: ${specialRequirements}<br>Language: ${language}<br>Age Group Keyword: ${ageGroupKeyword}<br>Age Group Description: ${ageGroupDescription}<br>Service Types: ${serviceTypes}<br>Indigenous Classification: ${indigenousClassification}<br>Capacity Status: ${capacityStatus}<br>Capacity Status Text: ${capacityStatusText}<br>Capacity Frequency: ${capacityFrequency}<br>Capacity Last Notification: ${capacityLastNotification}<br>Capacity Last Status Update: ${capacityLastStatusUpdate}<br>Capacity Expire Date: ${capacityExpireDate}<br>Accreditation Name: ${accreditationName}</p>`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+       } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
   })
 })
 
-// Delete
+// Delete Service EMAIL DONE!
 router.delete('/service/:org_id/:site_id/:service_id', (req,res)=>{
   const { org_id, site_id, service_id } = req.params;
-  const ObjectId = require('mongoose').Types.ObjectId;
-  const Organisation = require('../models/Organisation');
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     if (err){
       return res.send(err)
     }
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
-    // console.log('site',': ', site);
     const service = site.servicesInSite.id(new ObjectId(service_id));
     service.remove();
     organisation.save();
+// Email Code
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: 'Service Deleted',
+      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has deleted the service '${service.name}' which was provided at the '${site.name}' site`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+       } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
     return res.send(organisation);
   })
 })
-
 
 //ADMIN END POINTS:
 //Checks if the admin user exists in the authorised admin users database, if so it responds with the admin user data.
