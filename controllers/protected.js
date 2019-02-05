@@ -17,6 +17,8 @@ const isAuthenticated = (req, res, next) => {
 }
 
 // Email Variables
+const mailerEmail = 'askizzyplus.mailer@gmail.com'
+const receiverEmail = 'askizzyplus.user1@gmail.com'
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -24,8 +26,6 @@ const transporter = nodemailer.createTransport({
       pass: process.env.GMAIL_PASS
   }
 })
-const mailerEmail = 'askizzyplus.mailer@gmail.com'
-const receiverEmail = 'askizzyplus.user1@gmail.com'
 
 //PASSPORT: Using isAuthenticated in all the end points of our router. To access any end point the token has to exists. 
 router.use(isAuthenticated);
@@ -97,23 +97,22 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
-//Update ORGANISATION - EMAIL DONE.... update org in template
+//Update ORGANISATION - EMAIL DONE!
 router.put('/organisation/:_id', (req, res) => {
   const { _id } = req.params;
   const options = {
     new: true,
   }
-  const update = req.body;
-  update.lastUpdated = new Date();
-  Organisation.findByIdAndUpdate(new ObjectId(_id), update, options, (err, organisation) => {
+  req.body.lastUpdated = new Date();
+  Organisation.findByIdAndUpdate(new ObjectId(_id), req.body, options, (err, organisation) => {
     res.send(organisation);
 // Email Code
-  const { description, website, abn, providerType, alsoKnownAs, emailAddress, emailIsConfidential, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, ceo } = update
+  const { description, website, abn, providerType, alsoKnownAs, emailAddress, emailIsConfidential, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, ceo } = req.body
 
   const emailBody = {
     from: mailerEmail,
     to: receiverEmail,
-    subject: 'Service Provider Updated',
+    subject: 'Organisation Details Updated',
     html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated their information<br>The new information submitted is as follows....<br><br>Description: ${description}<br>Website: ${website}<br>ABN: ${abn}<br>Provider Type: ${providerType}<br>Also Known As: ${alsoKnownAs}<br>Email Address: ${emailAddress}<br>Email Confidential?: ${emailIsConfidential}<br>Postal Address: ${postalAddress}<br>State: ${postalAddressState}<br>Suburb: ${postalAddressSuburb}<br>PostCode: ${postalAddressPostcode}<br>Postal Address is Confidential? ${postalAddressIsConfidential}<br>Phone Number: ${phoneNumber}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>CEO: ${ceo}</p>`
     }
     transporter.sendMail(emailBody, function(error, info) {
@@ -137,13 +136,13 @@ router.post('/site/:org_id', (req, res) => {
     organisation.save();
     res.send(organisation);
 // Email Code
-    const { siteName, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
+    const { name, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
 
     const emailBody = {
       from: mailerEmail,
       to: receiverEmail,
       subject: 'New Site Created',
-      html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has created a new site.<br><br>Site Name: ${siteName}<br>Accessibility: 
+      html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has created a new site.<br><br>Site Name: ${name}<br>Accessibility: 
       ${accessibility}<br>Location Details: ${locationDetails}<br>Parking Info: ${parkingInfo}<br>Public Transport Info: ${publicTransportInfo}<br>Is Mobile: ${isMobile}<br>Email Address: ${emailAddress}<br>Email Is Confidential?: ${emailIsConfidential}<br>Website: ${website}<br>Postal Address: ${postalAddress}<br>Postal Address State: ${postalAddressState}<br>Postal Address Suburb: ${postalAddressSuburb}<br>Postal Address Postcode: ${postalAddressPostcode}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>Opening Hours${openingHours}<br>Address Building: ${addressBuilding}<br>Address Level: ${addressLevel}<br>Address Flat Unit: ${addressFlatUnit}<br>Address Street Number: ${addressStreetNumber}<br>Address Street Name: ${addressStreetName}<br>Address Street Type: ${addressStreetType}<br>Address Street Suffix: ${addressStreetSuffix}<br>Address Suburb: ${addressSuburb}<br>Address State: ${addressState}<br>Address Postcode: ${addressPostcode}<br>Address Is Confidential: ${addressIsConfidential}</p>`
       }
       transporter.sendMail(emailBody, function(error, info) {
