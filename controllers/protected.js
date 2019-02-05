@@ -1,14 +1,9 @@
-// EXPRESS ROUTER: Protected pages redirected from auth.js middleware
 const router = require('express').Router();
 const jwtDecode = require('jwt-decode');
 const nodemailer = require('nodemailer');
-require('dotenv').load();
 const Organisation = require('../models/Organisation')
 const User = require('../models/User')
-
-router.get('/test', (req, res) => {
-  return res.send("protected route working")
-})
+require('dotenv').load();
 
 // MIDDLEWARE: isAuthenticated function checks if Google OAuth token exists, if so calls next otherwise it sends an error message.
 const isAuthenticated = (req, res, next) => {
@@ -23,13 +18,11 @@ const isAuthenticated = (req, res, next) => {
 //PASSPORT: Using isAuthenticated in all the end points of our router. To access any end point the token has to exists. 
 router.use(isAuthenticated);
 
-//Profile info from User.
 router.get('/profile', (req, res) => {
   const { user } = req.session.passport;
   res.send(user.profile);
 });
 
-//Organisations data endpoint.
 router.get('/organisations', (req, res) => {
   Organisation.find()
     .then(docs => {
@@ -37,7 +30,6 @@ router.get('/organisations', (req, res) => {
     })
 })
 
-//Users data endpoint.
 router.get('/users', (req, res) => {
   User.find()
     .then(docs => {
@@ -45,21 +37,18 @@ router.get('/users', (req, res) => {
     })
 })
 
-//Dashboard for AskIzzy Plus User.
 router.get('/dashboard', (req, res) => {
     const { user } = req.session.passport
     const { givenName } = user.profile.name;
     res.send(`Welcome ${givenName}`);
 })
 
-//Dashboard for AskIzzy Plus Admin.
 router.get('/admin/dashboard', (req, res) => {
     const { user } = req.session.passport
     const { givenName } = user.profile.name;
     res.send(`You are logged in as ${givenName} from Infoxchange`);
 })
 
-//ASKIZZY PLUS USER END POINTS:
 //Checks if the user exists in the authorised users database, if so it responds with the user organisation data.
 router.get('/getUserData', (req, res) => {  
   const { token } = req.headers;
@@ -96,19 +85,34 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
-//ORGANISATION
-//Update
+//Update ORGANISATION 
 router.put('/organisation/:_id', (req, res) => {
   const { _id } = req.params;
-  const Organisation = require('../models/Organisation');
+  //const Organisation = require('../models/Organisation');
   //Note that _id is a mongo ObjectId not a string.
   const ObjectId = require('mongoose').Types.ObjectId;
   // new:true returns the updated document instead of the previous one.
   const options = {
     new: true,
   }
-  //Storing req.body in update const.
   const update = req.body;
+// Email fields
+  const description = 'Description: ' + req.body.description 
+  const website = 'Website: ' + req.body.website
+  const abn = 'ABN: ' + req.body.abn
+  const providerType = 'Provider Type ' + req.body.providerType
+  const alsoKnownAs = 'Also Known As: ' + req.body.alsoKnownAs
+  const emailAddress = 'Email Address: ' + req.body.emailAddress
+  const emailIsConfidential = 'Email Is Confidential: ' + req.body.emailIsConfidential
+  const postalAddress = 'Postal Address: ' + req.body.postalAddress
+  const state = 'State: ' + req.body.state
+  const suburb = 'Suburb: ' + req.body.suburb
+  const postCode = 'Postcode: ' + req.body.state
+  const postalAddressCon = 'Postal Address is Confidential: ' + req.body.postalAddressIsConfidential
+  const phoneNumber = 'Phone Number: ' + req.body.phoneNumber
+  const phoneKind = 'Phone Kind: ' + req.body.phoneKind
+  const phoneCon = 'Phone is Confidential: ' + req.body.phoneIsConfidential
+  const ceo = 'CEO: ' + req.body.ceo
   //Here we change the value of lastUpdated to the current date/time.
   update.lastUpdated = new Date();
   //findByIdAndUpdate(id,update,options,callback);
@@ -116,10 +120,30 @@ router.put('/organisation/:_id', (req, res) => {
     // console.log('organisation', ': ', organisation);
     res.send(organisation);
   })
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_ACCOUNT,
+        pass: process.env.GMAIL_PASS
+    }
+  })
+  const emailBody = {
+    from: 'askizzyplustest1@gmail.com',
+    to: 'askizzyplustest1@gmail.com',
+    subject: 'Update of Organisation Details',
+    html: `<h3>PUT Request</h3><p>Someone from has updated details for<br>The new information submitted is as follows....<br><br> ${description}</p>`
+    }
+    transporter.sendMail(emailBody, function(error, info) {
+      if(error){
+        console.log(error)
+        res.send('Email not sent :(')
+     } else {
+        console.log(info.response)
+        res.send('Email Sent :-)')
+    }
+    })
 })
 
-
-// SITE
 //Create Site
 router.post('/site/:org_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
@@ -181,8 +205,7 @@ router.delete('/site/:org_id/:site_id', (req,res)=>{
   })
 })
 
-//SERVICE
-//Create 
+//Create Service
 router.post('/service/:org_id/:site_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id, site_id } = req.params;
@@ -204,7 +227,7 @@ router.post('/service/:org_id/:site_id', (req, res) => {
   })
 })
 
-// Update 
+// Update Service
 router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
   //Getting organisation and site _ids from req.params. 
   const { org_id, site_id, service_id } = req.params;
@@ -233,7 +256,7 @@ router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
   })
 })
 
-// Delete
+// Delete Service
 router.delete('/service/:org_id/:site_id/:service_id', (req,res)=>{
   const { org_id, site_id, service_id } = req.params;
   const ObjectId = require('mongoose').Types.ObjectId;
@@ -250,7 +273,6 @@ router.delete('/service/:org_id/:site_id/:service_id', (req,res)=>{
     return res.send(organisation);
   })
 })
-
 
 //ADMIN END POINTS:
 //Checks if the admin user exists in the authorised admin users database, if so it responds with the admin user data.
