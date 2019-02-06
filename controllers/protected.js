@@ -17,8 +17,8 @@ const isAuthenticated = (req, res, next) => {
 }
 
 // Email Variables
-const mailerEmail = 'askizzyplus.mailer@gmail.com'
-const receiverEmail = 'askizzyplus.user1@gmail.com'
+const mailerEmail = process.env.GMAIL_ACCOUNT
+const receiverEmail = 'askizzyplus.info@gmail.com'
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -97,7 +97,7 @@ router.get('/getUserData', (req, res) => {
     })
 })
 
-//Update ORGANISATION - EMAIL DONE!
+//Update ORGANISATION - EMAIL DONE!.... loop added.
 router.put('/organisation/:_id', (req, res) => {
   const { _id } = req.params;
   const options = {
@@ -107,19 +107,22 @@ router.put('/organisation/:_id', (req, res) => {
   Organisation.findByIdAndUpdate(new ObjectId(_id), req.body, options, (err, organisation) => {
     res.send(organisation);
 // Email Code
-  const { description, website, abn, providerType, alsoKnownAs, emailAddress, emailIsConfidential, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, ceo } = req.body
+  const dataUpdated = Object.keys(req.body).map(function(key) {
+    const val = req.body[key];
+    return `<li>${key.toUpperCase()}: ${val}</li>`
+  });
 
   const emailBody = {
     from: mailerEmail,
     to: receiverEmail,
-    subject: 'Organisation Details Updated',
-    html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated their information<br>The new information submitted is as follows....<br><br>Description: ${description}<br>Website: ${website}<br>ABN: ${abn}<br>Provider Type: ${providerType}<br>Also Known As: ${alsoKnownAs}<br>Email Address: ${emailAddress}<br>Email Confidential?: ${emailIsConfidential}<br>Postal Address: ${postalAddress}<br>State: ${postalAddressState}<br>Suburb: ${postalAddressSuburb}<br>PostCode: ${postalAddressPostcode}<br>Postal Address is Confidential? ${postalAddressIsConfidential}<br>Phone Number: ${phoneNumber}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>CEO: ${ceo}</p>`
+    subject: 'Organisation Updated',
+    html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated the information for this organisation<br>The new information submitted is as follows....<br><br><ul>${dataUpdated.join("")}</ul></p>`
     }
     transporter.sendMail(emailBody, function(error, info) {
       if(error){
         console.log(error)
         res.send('Email not sent :(')
-     } else {
+    } else {
         console.log(info.response)
         res.send('Email Sent :-)')
     }
@@ -127,7 +130,7 @@ router.put('/organisation/:_id', (req, res) => {
   })
 })
 
-//Create Site - EMAIL DONE!
+//Create Site - EMAIL DONE!... Loop added
 router.post('/site/:org_id', (req, res) => {
   const { org_id } = req.params;
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
@@ -136,28 +139,30 @@ router.post('/site/:org_id', (req, res) => {
     organisation.save();
     res.send(organisation);
 // Email Code
-    const { name, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
+const dataUpdated = Object.keys(req.body).map(function(key) {
+  const val = req.body[key];
+  return `<li>${key.toUpperCase()}: ${val}</li>`
+});
 
-    const emailBody = {
-      from: mailerEmail,
-      to: receiverEmail,
-      subject: 'New Site Created',
-      html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has created a new site.<br><br>Site Name: ${name}<br>Accessibility: 
-      ${accessibility}<br>Location Details: ${locationDetails}<br>Parking Info: ${parkingInfo}<br>Public Transport Info: ${publicTransportInfo}<br>Is Mobile: ${isMobile}<br>Email Address: ${emailAddress}<br>Email Is Confidential?: ${emailIsConfidential}<br>Website: ${website}<br>Postal Address: ${postalAddress}<br>Postal Address State: ${postalAddressState}<br>Postal Address Suburb: ${postalAddressSuburb}<br>Postal Address Postcode: ${postalAddressPostcode}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>Opening Hours${openingHours}<br>Address Building: ${addressBuilding}<br>Address Level: ${addressLevel}<br>Address Flat Unit: ${addressFlatUnit}<br>Address Street Number: ${addressStreetNumber}<br>Address Street Name: ${addressStreetName}<br>Address Street Type: ${addressStreetType}<br>Address Street Suffix: ${addressStreetSuffix}<br>Address Suburb: ${addressSuburb}<br>Address State: ${addressState}<br>Address Postcode: ${addressPostcode}<br>Address Is Confidential: ${addressIsConfidential}</p>`
-      }
-      transporter.sendMail(emailBody, function(error, info) {
-        if(error){
-          console.log(error)
-          res.send('Email not sent :(')
-       } else {
-          console.log(info.response)
-          res.send('Email Sent :-)')
-      }
-      })
+const emailBody = {
+  from: mailerEmail,
+  to: receiverEmail,
+  subject: 'Site Created',
+  html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has created a new site.<br>The data submitted for the new site is... <br><br><ul>${dataUpdated.join("")}</ul></p>`
+  }
+  transporter.sendMail(emailBody, function(error, info) {
+    if(error){
+      console.log(error)
+      res.send('Email not sent :(')
+  } else {
+      console.log(info.response)
+      res.send('Email Sent :-)')
+  }
   })
 })
+})
 
-// Update Site - EMAIL DONE!
+// Update Site - EMAIL DONE!... Loop added
 router.put('/site/:org_id/:site_id', (req, res) => { 
   const { org_id, site_id } = req.params;
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
@@ -167,29 +172,31 @@ router.put('/site/:org_id/:site_id', (req, res) => {
     organisation.save(() => {
       res.send(organisation);
     })
-// Email Code
-  const { siteName, accessibility, locationDetails, parkingInfo, publicTransportInfo, isMobile, emailAddress, emailIsConfidential, website, postalAddress, postalAddressState, postalAddressSuburb, postalAddressPostcode, postalAddressIsConfidential, phoneNumber, phoneKind, phoneIsConfidential, openingHours, addressBuilding, addressLevel, addressFlatUnit, addressStreetNumber, addressStreetName, addressStreetType, addressStreetSuffix, addressSuburb, addressState, addressPostcode, addressIsConfidential } = req.body
+    // Email Code
+    const dataUpdated = Object.keys(req.body).map(function(key) {
+      const val = req.body[key];
+      return `<li>${key.toUpperCase()}: ${val}</li>`
+    });
 
-const emailBody = {
-  from: mailerEmail,
-  to: receiverEmail,
-  subject: 'Site Updated',
-  html: `<h3>Hello infoeXchange</h3><p>A user from ${organisation.name} has updated information for the '${site.name}' site.<br><br>Site Name: ${siteName}<br>Accessibility: 
-  ${accessibility}<br>Location Details: ${locationDetails}<br>Parking Info: ${parkingInfo}<br>Public Transport Info: ${publicTransportInfo}<br>Is Mobile: ${isMobile}<br>Email Address: ${emailAddress}<br>Email Is Confidential?: ${emailIsConfidential}<br>Website: ${website}<br>Postal Address: ${postalAddress}<br>Postal Address State: ${postalAddressState}<br>Postal Address Suburb: ${postalAddressSuburb}<br>Postal Address Postcode: ${postalAddressPostcode}<br>Phone Kind: ${phoneKind}<br>Phone is Confidential?: ${phoneIsConfidential}<br>Opening Hours${openingHours}<br>Address Building: ${addressBuilding}<br>Address Level: ${addressLevel}<br>Address Flat Unit: ${addressFlatUnit}<br>Address Street Number: ${addressStreetNumber}<br>Address Street Name: ${addressStreetName}<br>Address Street Type: ${addressStreetType}<br>Address Street Suffix: ${addressStreetSuffix}<br>Address Suburb: ${addressSuburb}<br>Address State: ${addressState}<br>Address Postcode: ${addressPostcode}<br>Address Is Confidential: ${addressIsConfidential}</p>`
-  }
-  transporter.sendMail(emailBody, function(error, info) {
-    if(error){
-      console.log(error)
-      res.send('Email not sent :(')
-   } else {
-      console.log(info.response)
-      res.send('Email Sent :-)')
-  }
-  })
-  })
+    const emailBody = {
+      from: mailerEmail,
+      to: receiverEmail,
+      subject: 'Site Updated',
+      html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated details for the '${site.name}' Site<br>The data submitted for the new site is... <br><br><ul>${dataUpdated.join("")}</ul></p>`
+      }
+      transporter.sendMail(emailBody, function(error, info) {
+        if(error){
+          console.log(error)
+          res.send('Email not sent :(')
+      } else {
+          console.log(info.response)
+          res.send('Email Sent :-)')
+      }
+      })
+    })
 })
 
-//Delete Site EMAIL DONE!
+//Delete Site EMAIL DONE!... No Loop required.
 router.delete('/site/:org_id/:site_id', (req, res) => {
   const { org_id, site_id } = req.params;
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
@@ -202,7 +209,7 @@ router.delete('/site/:org_id/:site_id', (req, res) => {
     const emailBody = {
       from: mailerEmail,
       to: receiverEmail,
-      subject: `Site Deleted by ${organisation.name}`,
+      subject: 'Site Deleted',
       html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has deleted the '${site.name}' site</p>`
       }
       transporter.sendMail(emailBody, function(error, info) {
@@ -218,11 +225,9 @@ router.delete('/site/:org_id/:site_id', (req, res) => {
   })
 })
 
-//Create Service EMAIL DONE!
+//Create Service EMAIL DONE!... loop added
 router.post('/service/:org_id/:site_id', (req, res) => {
   const { org_id, site_id } = req.params;
-  const {  name, description, referralInfo, adhcEligible, assessmentCriteria, targetGender, availability, billingMethod, cost, crisisKeywords, details, eligibilityInfo, ineligibilityInfo, fundingBody, healthcareCardHolders, intakeInfo, intakePoint, isBulkBilling, ndisApproved, promotedService, specialRequirements, language, ageGroupKeyword, ageGroupDescription, serviceTypes, indigenousClassification, capacityStatus, capacityStatusText, capacityFrequency, capacityLastNotification, capacityLastStatusUpdate, capacityExpireDate, accreditationName } = req.body
-
   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
 // Finding the records and updating them    
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id));
@@ -231,31 +236,34 @@ router.post('/service/:org_id/:site_id', (req, res) => {
     services.push(service);
     organisation.save();
     res.send(organisation);
-// Sending the email advising what has been created.
-    const emailBody = {
-      from: mailerEmail,
-      to: receiverEmail,
-      subject: 'New Service Created',
-      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has created a new service for the '${site.name}' site.<br><br>Name: ${name}<br>Description: ${description}<br>Referral Info: ${referralInfo}<br>ADHC Eligible: ${adhcEligible}<br>Assessment Criteria: ${assessmentCriteria}<br>Target Gender: ${targetGender}<br>Availability: ${availability}<br>Billing Method: ${billingMethod}<br>Cost: ${cost}<br>Crisis Keywords: ${crisisKeywords}<br>Details: ${details}<br>Eligibility Info: ${eligibilityInfo}<br>Ineligibility Info: ${ineligibilityInfo}<br>Funding Body: ${fundingBody}<br>Healthcare Card Holders: ${healthcareCardHolders}<br>Intake Info: ${intakeInfo}<br>Bulk Billing?: ${isBulkBilling}<br>NDIS Approved: ${ndisApproved}<br>Promoted Service: ${promotedService}<br>Special Requirements: ${specialRequirements}<br>Language: ${language}<br>Age Group Keyword: ${ageGroupKeyword}<br>Age Group Description: ${ageGroupDescription}<br>Service Types: ${serviceTypes}<br>Indigenous Classification: ${indigenousClassification}<br>Capacity Status: ${capacityStatus}<br>Capacity Status Text: ${capacityStatusText}<br>Capacity Frequency: ${capacityFrequency}<br>Capacity Last Notification: ${capacityLastNotification}<br>Capacity Last Status Update: ${capacityLastStatusUpdate}<br>Capacity Expire Date: ${capacityExpireDate}<br>Accreditation Name: ${accreditationName}</p>`
-      }
-      transporter.sendMail(emailBody, function(error, info) {
-        if(error){
-          console.log(error)
-          res.send('Email not sent :(')
-       } else {
-          console.log(info.response)
-          res.send('Email Sent :-)')
-      }
-      })
+ // Email Code
+ const dataUpdated = Object.keys(req.body).map(function(key) {
+  const val = req.body[key];
+  return `<li>${key.toUpperCase()}: ${val}</li>`
+});
+
+const emailBody = {
+  from: mailerEmail,
+  to: receiverEmail,
+  subject: 'Service Created',
+  html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has created a new service for '${site.name}' Site<br>The data submitted for the new site is... <br><br><ul>${dataUpdated.join("")}</ul></p>`
+  }
+  transporter.sendMail(emailBody, function(error, info) {
+    if(error){
+      console.log(error)
+      res.send('Email not sent :(')
+  } else {
+      console.log(info.response)
+      res.send('Email Sent :-)')
+  }
   })
 })
+})
 
-// Update Service EMAIL DONE!
+// Update Service EMAIL DONE!... Created loop
 router.put('/service/:org_id/:site_id/:service_id', (req, res) => { 
   const { org_id, site_id, service_id } = req.params;
-  const {  name, description, referralInfo, adhcEligible, assessmentCriteria, targetGender, availability, billingMethod, cost, crisisKeywords, details, eligibilityInfo, ineligibilityInfo, fundingBody, healthcareCardHolders, intakeInfo, intakePoint, isBulkBilling, ndisApproved, promotedService, specialRequirements, language, ageGroupKeyword, ageGroupDescription, serviceTypes, indigenousClassification, capacityStatus, capacityStatusText, capacityFrequency, capacityLastNotification, capacityLastStatusUpdate, capacityExpireDate, accreditationName } = req.body
-
-  Organisation.findById(new ObjectId(org_id), (err, organisation) => {
+   Organisation.findById(new ObjectId(org_id), (err, organisation) => {
     const site = organisation.sitesInOrganisation.id(new ObjectId(site_id))
     const service = site.servicesInSite.id(new ObjectId(service_id))
     service.set(req.body);
@@ -264,23 +272,28 @@ router.put('/service/:org_id/:site_id/:service_id', (req, res) => {
     organisation.save(() => {
       res.send(organisation);
     })
-    // Sending the email advising what has been updated.
+     // Email Code
+     const dataUpdated = Object.keys(req.body).map(function(key) {
+      const val = req.body[key];
+      return `<li>${key.toUpperCase()}: ${val}</li>`
+    });
+
     const emailBody = {
       from: mailerEmail,
       to: receiverEmail,
-      subject: 'Service Info Updated',
-      html: `<h4>Hello infoeXchange</h4><p>A user from ${organisation.name} has updated details of a service at ${site.name}<br><br>Name: ${name}<br>Description: ${description}<br>Referral Info: ${referralInfo}<br>ADHC Eligible: ${adhcEligible}<br>Assessment Criteria: ${assessmentCriteria}<br>Target Gender: ${targetGender}<br>Availability: ${availability}<br>Billing Method: ${billingMethod}<br>Cost: ${cost}<br>Crisis Keywords: ${crisisKeywords}<br>Details: ${details}<br>Eligibility Info: ${eligibilityInfo}<br>Ineligibility Info: ${ineligibilityInfo}<br>Funding Body: ${fundingBody}<br>Healthcare Card Holders: ${healthcareCardHolders}<br>Intake Info: ${intakeInfo}<br>Bulk Billing?: ${isBulkBilling}<br>NDIS Approved: ${ndisApproved}<br>Promoted Service: ${promotedService}<br>Special Requirements: ${specialRequirements}<br>Language: ${language}<br>Age Group Keyword: ${ageGroupKeyword}<br>Age Group Description: ${ageGroupDescription}<br>Service Types: ${serviceTypes}<br>Indigenous Classification: ${indigenousClassification}<br>Capacity Status: ${capacityStatus}<br>Capacity Status Text: ${capacityStatusText}<br>Capacity Frequency: ${capacityFrequency}<br>Capacity Last Notification: ${capacityLastNotification}<br>Capacity Last Status Update: ${capacityLastStatusUpdate}<br>Capacity Expire Date: ${capacityExpireDate}<br>Accreditation Name: ${accreditationName}</p>`
+      subject: `Service Updated`,
+      html: `<h3>Hello infoXchange</h3><p>A user from ${organisation.name} has updated details for the '${service.name}' service under their '${site.name}' Site<br>The data submitted for the new site is... <br><br><ul>${dataUpdated.join("")}</ul></p>`
       }
       transporter.sendMail(emailBody, function(error, info) {
         if(error){
           console.log(error)
           res.send('Email not sent :(')
-       } else {
+      } else {
           console.log(info.response)
           res.send('Email Sent :-)')
       }
       })
-  })
+    })
 })
 
 // Delete Service EMAIL DONE!
