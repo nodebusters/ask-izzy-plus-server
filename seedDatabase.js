@@ -1,8 +1,8 @@
 // MONGOOSE: Connection configuration to MongoDB database via Mongoose library
 // DOTENV: Reads MONGO_DRIVER url from .env file
 console.clear();
-require('dotenv').load();
-const mongoose = require('mongoose');
+require("dotenv").load();
+const mongoose = require("mongoose");
 
 // MONGOOSE: Connects to the MongoDB database on localhost:27017
 const driver = process.env.MONGO_DRIVER_PROD;
@@ -10,36 +10,33 @@ const driver = process.env.MONGO_DRIVER_PROD;
 mongoose.connect(driver);
 
 // MONGOOSE: Connection event - when successfully connected
-const Organisation = require('./models/Organisation');
-const User = require('./models/User');
-const AdminUser = require('./models/AdminUser');
+const Organisation = require("./models/Organisation");
+const User = require("./models/User");
+const AdminUser = require("./models/AdminUser");
 
-mongoose.connection.on('connected', () => {
-  console.log('connected to mongod');
-  console.log('-------------------------------');
-  async function dropDatabase(){
-    return new Promise ((resolve,reject)=>{
-      Organisation.deleteMany({})
-      .then(()=>{
-        User.deleteMany({})
-        .then(()=>{
-          resolve('done');
-        })
-      })
-    })
+mongoose.connection.on("connected", () => {
+  console.log("connected to mongod");
+  console.log("-------------------------------");
+  async function dropDatabase() {
+    return new Promise((resolve, reject) => {
+      Organisation.deleteMany({}).then(() => {
+        User.deleteMany({}).then(() => {
+          resolve("done");
+        });
+      });
+    });
   }
 
-  async function seedOrganisations(){
-    return new Promise ((resolve,reject)=>{ 
+  async function seedOrganisations() {
+    return new Promise((resolve, reject) => {
       // const siteData = {id:1}
-    
+
       // To seed up to five organisations, set index to 1-5
       for (let index = 1; index <= 1; index++) {
-    
         const booleanValue = false;
-        let stringValue = `Text entry ${index}` // adding the index to the strings.
-        
-        const serviceData ={
+        let stringValue = `Text entry ${index}`; // adding the index to the strings.
+
+        const serviceData = {
           id: index,
           name: stringValue,
           description: stringValue,
@@ -73,11 +70,11 @@ mongoose.connection.on('connected', () => {
           capacityLastNotification: stringValue,
           capacityLastStatusUpdate: stringValue,
           capacityExpireDate: stringValue,
-          accreditationName: stringValue,
-        }
+          accreditationName: stringValue
+        };
 
-        stringValue = `Site Text Entry`
-        
+        stringValue = `Site Text Entry`;
+
         const siteData = {
           id: index,
           name: stringValue,
@@ -97,10 +94,14 @@ mongoose.connection.on('connected', () => {
           phoneNumber: stringValue,
           phoneKind: stringValue,
           phoneIsConfidential: booleanValue,
-          openingHours: [{day:"Monday",
-            openTime:"8:30",
-            closeTime:"15:30",
-            openingHoursNote: "closes early"}],
+          openingHours: [
+            {
+              day: "Monday",
+              openTime: "8:30",
+              closeTime: "15:30",
+              openingHoursNote: "closes early"
+            }
+          ],
           addressBuilding: stringValue,
           addressLevel: stringValue,
           addressFlatUnit: stringValue,
@@ -112,8 +113,8 @@ mongoose.connection.on('connected', () => {
           addressState: stringValue,
           addressPostcode: stringValue,
           addressIsConfidential: booleanValue,
-          servicesInSite: [serviceData,serviceData,serviceData],
-        }
+          servicesInSite: [serviceData, serviceData, serviceData]
+        };
         const organisationData = {
           name: stringValue,
           description: stringValue,
@@ -134,26 +135,22 @@ mongoose.connection.on('connected', () => {
           phoneKind: stringValue,
           phoneIsConfidential: booleanValue,
           ceo: stringValue,
-          sitesInOrganisation: [siteData, siteData],
-        }
-    
-        Organisation.create(organisationData)
-          .then(() => {
-            console.log(`organisation ${index} seeded`);
-            resolve('done');
-          });
+          sitesInOrganisation: [siteData, siteData]
+        };
+
+        Organisation.create(organisationData).then(() => {
+          console.log(`organisation ${index} seeded`);
+          resolve("done");
+        });
       }
-    })
+    });
   }
 
-  async function seedUsers(){
-    return new Promise ((resolve,reject)=>{
-
-
-      Organisation.find()
-      .then((organisations)=>{
-        const organisationId = organisations[0]._id 
-        console.log('organisationId',': ', organisationId);
+  async function seedUsers() {
+    return new Promise((resolve, reject) => {
+      Organisation.find().then(organisations => {
+        const organisationId = organisations[0]._id;
+        console.log("organisationId", ": ", organisationId);
         organisations[0].name = "Salvation Army";
         organisations[0].save();
 
@@ -161,52 +158,47 @@ mongoose.connection.on('connected', () => {
           email: "askizzyplustest1@gmail.com",
           firstName: "John",
           lastName: "Citizen",
-          organisation:organisationId,
-        }
+          organisation: organisationId
+        };
 
-        User.create(dataUser)
-        .then (()=>{
+        User.create(dataUser).then(() => {
           console.log(`user seeded`);
-          resolve('done');
-        })
-        resolve ('done');           
-      })  
-    })
+          resolve("done");
+        });
+        resolve("done");
+      });
+    });
   }
 
-  async function seedAdminUsers(){
-    return new Promise ((resolve,reject)=>{
-        const dataAdminUser = {
-          email: "askizzyplustest2@gmail.com",
-          firstName: "Admin",
-          lastName: "Ask Izzy Plus"
-        }
+  async function seedAdminUsers() {
+    return new Promise((resolve, reject) => {
+      const dataAdminUser = {
+        email: "askizzyplustest2@gmail.com",
+        firstName: "Admin",
+        lastName: "Ask Izzy Plus"
+      };
 
-        AdminUser.create(dataAdminUser)
-        .then (()=>{
-          console.log(`admin user seeded`);
-          resolve('done');
-        })
+      AdminUser.create(dataAdminUser).then(() => {
+        console.log(`admin user seeded`);
+        resolve("done");
+      });
 
-        resolve ('done');      
-      
-      })
+      resolve("done");
+    });
+  }
 
-      
-    }
-
-  async function seed(){
+  async function seed() {
     await dropDatabase();
     await seedOrganisations();
     await seedUsers();
     await seedAdminUsers();
-    console.log("Seeding process finalized.");  
+    console.log("Seeding process finalized.");
   }
 
   seed();
 
-// MONGOOSE: Connection event - when disconnected
-mongoose.connection.on('error', () => {
-    console.log('failed to connect to mongod');
+  // MONGOOSE: Connection event - when disconnected
+  mongoose.connection.on("error", () => {
+    console.log("failed to connect to mongod");
+  });
 });
-})
